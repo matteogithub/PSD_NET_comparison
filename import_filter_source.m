@@ -1,8 +1,8 @@
 addpath '/Users/matteo/Downloads/eeglab_last/'
 
 %Dir with ADJUSTed edf
-inDir='/Users/matteo/Desktop/2018_2019/Ricerca/scalp_adjust_ALL/';
-%inDir='/Users/matteo/Documents/Margherita/Data_results/source_adjust/';
+%inDir='/Users/matteo/Desktop/2018_2019/Ricerca/scalp_adjust_ALL/';
+inDir='/Users/matteo/Google Drive/PSD_CONN_comparison/Source/';
 
 %Select EC-RS only
 fil_sbj='*R02*';
@@ -10,7 +10,7 @@ fil_sbj='*R02*';
 lf=8; %this is for beta band
 hf=13; %this is for beta band
 maxf=40;  %this is for total power comp
-nch=64; %number of channels
+nch=68; %number of channels
 nep=5;
 epl=12;
 fs=160;
@@ -22,9 +22,9 @@ k=0;
 for i=1:length(cases)
     i
     file_to_open=strcat(inDir,cases(i).name);
-    EEG=pop_biosig(file_to_open);
-    EEG.data=reref(EEG.data);
-    filt_EEG=eegfilt(EEG.data,EEG.srate,lf,hf,0,[],0,'fir1',0);
+    EEG=importdata(file_to_open);
+    %EEG.Value=reref(EEG);
+    filt_EEG=eegfilt(EEG.Value,fs,lf,hf,0,[],0,'fir1',0);
     for j=1:nep
         en=j*epl;
         in=en-epl;
