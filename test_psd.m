@@ -6,7 +6,7 @@ nt=10; %trials
 f0 = [8;20]; % two frequencies
 df = 1/T;
 PRtot=linspace(1,2,100); % ratio of power of second frequency wrt first one
-plv_av=zeros(1,length(PRtot));
+plv_av=zeros(1,length(PRtot));pli_av=plv_av;
 for ip=1:length(PRtot)
     rmsLevel = [1;1/sqrt(PRtot(ip))]; % RMS level
     GxxMag = ((rmsLevel.^2)/df); % Single-Sided Power spectrum magnitude
@@ -22,11 +22,17 @@ for ip=1:length(PRtot)
             data(ic,:,itrials)=timeseries+.1*randn(size(timeseries));
         end
     end
+    data=hilbert(data);
+    % here compute phase locking value as in Bruña et al. 
     ndat = data ./ abs(data);
     plv = zeros(nc, nc, nt);
     for t = 1: nt
         plv(:,:, t) = abs(ndat(:,:, t)*ndat(:,:, t)') / ns;
     end
     plv_av(ip)=mean(mean(mean(plv)));
+    % here compute weighted phase lag index
+    pli=wpli_sin(data);
+    pli_av(ip)=nanmean(nanmean(nanmean(pli)));
 end
 figure;scatter(PRtot,plv_av);xlabel('PSD(alpha ratio)');ylabel('|PLV|');set(gca,'FontSize',14)
+figure;scatter(PRtot,pli_av);xlabel('PSD(alpha ratio)');ylabel('|wPLI|');set(gca,'FontSize',14)
