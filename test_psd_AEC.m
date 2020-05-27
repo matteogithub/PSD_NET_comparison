@@ -5,8 +5,10 @@ ns=round(T*fs);
 nt=10; %trials
 f0 = [20;6]; % two frequencies
 df = 1/T;
+data=zeros(nc,ns);
 PRtot=linspace(1,2,100); % ratio of power of second frequency wrt first one
-plv_av=zeros(1,length(PRtot));pli_av=plv_av;
+AEC_meas=zeros(nc,nc,length(PRtot));AEC_no_meas=AEC_meas;
+AEC_av=zeros(1,length(PRtot));AEC_no_av=AEC_av;
 for ip=1:length(PRtot)
     rmsLevel = [1;1/sqrt(PRtot(ip))]; % RMS level
     GxxMag = ((rmsLevel.^2)/df); % Single-Sided Power spectrum magnitude
@@ -14,19 +16,19 @@ for ip=1:length(PRtot)
     PSD_DoubleSided = zeros(T*fs, 1);
     PSD_DoubleSided(f0*T+1) = SxxMag;
     PSD_DoubleSided(end-f0*T+1) = SxxMag;
-    % implementation of Bruña et al. https://www.ncbi.nlm.nih.gov/pubmed/29952757
-    data=zeros(nc,ns,nt);
-    for ic=1:nc
-        for itrials=1:nt
+    for itrials=1:nt
+        for ic=1:nc
             [timeseries, time] = TimeseriesFromPSD(PSD_DoubleSided, fs, T, 0);
-            data(ic,:,itrials)=timeseries+.1*randn(size(timeseries));
+            data(ic,:)=timeseries+.1*randn(size(timeseries));
         end
+        AEC_meas(:,:,itrials)=AEC(data');
+        AEC_no_meas(:,:,itrials)=AEC_noorth(data');
     end
-    AEC_meas=AEC(data);
     AEC_av(ip)=nanmean(nanmean(nanmean(AEC_meas)));
-    AEC_no_meas=AEC_noorth(data);
     AEC_no_av(ip)=nanmean(nanmean(nanmean(AEC_no_meas)));
-
 end
-figure;scatter(PRtot,plv_av);xlabel('PSD(theta/beta ratio)');ylabel('|AEC|');set(gca,'FontSize',14)
-figure;scatter(PRtot,pli_av);xlabel('PSD(theta/beta ratio)');ylabel('|AEC no orth|');set(gca,'FontSize',14)
+%%
+subplot(1,2,1);scatter(PRtot,AEC_av);xlabel('PSD(theta/beta ratio)');ylabel('|AEC|');set(gca,'FontSize',14)
+title(['Pearson correlation = ' num2str(corr2(PRtot,AEC_av))])
+subplot(1,2,2);scatter(PRtot,AEC_no_av);xlabel('PSD(theta/beta ratio)');ylabel('|AEC no orth|');set(gca,'FontSize',14)
+title(['Pearson correlation = ' num2str(corr2(PRtot,AEC_no_av))])
